@@ -1,0 +1,13 @@
+# Backend
+__pycache__/
+*.py[cod]
+venv/
+env/
+.env
+
+# Frontend
+node_modules/
+.DS_Store
+
+# Database
+*.sqlite3

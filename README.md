@@ -52,3 +52,9 @@ Run tests via:
 cd backend
 pytest tests/ -v
 \`\`\`
+
+
+### Technical Assumptions
+* **Data Processing:** It is assumed that uploaded CSV datasets are clean enough for pandas parsing without requiring extensive prior sanitization.
+* **Algorithmic Complexity:** The implementation of the `mexwf` algorithm assumes numerical columns and operates with $O(N \log N)$ complexity due to the sorting requirement before traversal.
+* **Environment:** It is assumed the application will be run in a Unix-like environment or WSL, and that Docker is available for the PostgreSQL database instance.

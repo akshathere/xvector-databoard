@@ -7,31 +7,25 @@ A full-stack web application for uploading, paginating, analyzing, and visualizi
 *   **Frontend:** React (Vite), React Router, Axios, React Toastify
 *   **Visualizations:** Apache ECharts (`echarts-for-react`)
 *   **Security:** Passwords hashed via `bcrypt`. JWT access tokens.
-*   **Performance:** $O(1)$ computation cache, native background tasks for CSV file handling.
+*   **Performance:** O(1) computation cache, native background tasks for CSV file handling.
 
 ## Setup Instructions
 
 ### 1. Database (Docker)
 Ensure Docker is running, then start the PostgreSQL container:
-\`\`\`bash
-docker run --name databoard-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=databoard -p 5432:5432 -d postgres
-\`\`\`
+`docker run --name databoard-db -e POSTGRES_PASSWORD=password -e POSTGRES_DB=databoard -p 5432:5432 -d postgres`
 
 ### 2. Backend
 Navigate to the `backend` directory:
-\`\`\`bash
-python -m venv venv
-source venv/Scripts/activate  # (Windows)
-pip install -r requirements.txt
-uvicorn main:app --reload
-\`\`\`
+`python -m venv venv`
+`source venv/Scripts/activate`
+`pip install -r requirements.txt`
+`uvicorn main:app --reload`
 
 ### 3. Frontend
 Navigate to the `frontend` directory:
-\`\`\`bash
-npm install
-npm run dev
-\`\`\`
+`npm install`
+`npm run dev`
 
 ## Fulfilling the Rubric Requirements
 
@@ -47,14 +41,11 @@ Genuine database-level pagination is implemented on the `GET /dataset` route usi
 The compute endpoint (`POST /dataset/{id}/compute`) is fully covered by a Pytest integration suite (`tests/test_compute.py`) ensuring stability during numeric operations and custom algorithmic processing. 
 *   **Covered Edge Cases:** The test suite verifies that the API safely catches and rejects operations on non-numeric strings, completely empty columns, and columns containing all-null values, returning appropriate `400 Bad Request` HTTP exceptions rather than failing internally. 
 
-Run tests via:
-\`\`\`bash
-cd backend
-pytest tests/ -v
-\`\`\`
-
+To run tests:
+`cd backend`
+`pytest tests/ -v`
 
 ### Technical Assumptions
 * **Data Processing:** It is assumed that uploaded CSV datasets are clean enough for pandas parsing without requiring extensive prior sanitization.
-* **Algorithmic Complexity:** The implementation of the `mexwf` algorithm assumes numerical columns and operates with $O(N \log N)$ complexity due to the sorting requirement before traversal.
+* **Algorithmic Complexity:** The implementation of the custom array algorithms assumes numerical columns and operates efficiently based on the necessary sorting requirements before traversal.
 * **Environment:** It is assumed the application will be run in a Unix-like environment or WSL, and that Docker is available for the PostgreSQL database instance.

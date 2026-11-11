@@ -6,6 +6,7 @@ import api from '../api/client';
 export default function UploadDataset() {
   const [file, setFile] = useState(null);
   const [uploadName, setUploadName] = useState('');
+  const [uploading, setUploading] = useState(false);
   const navigate = useNavigate();
 
   const handleUpload = async (e) => {
@@ -16,12 +17,16 @@ export default function UploadDataset() {
     formData.append('name', uploadName);
     formData.append('file', file);
 
+    setUploading(true);
     try {
+      // Server responds only after the file is saved, so success here means the dataset is ready
       const res = await api.post('/dataset', formData);
-      toast.success(res.data.detail || 'File uploaded!');
-      navigate('/dashboard'); // Push user back to the list automatically!
+      toast.success(res.data.detail || 'Upload completed!');
+      navigate('/dashboard');
     } catch (err) {
-      toast.error('Upload failed');
+      toast.error(err.response?.data?.detail || 'Upload failed');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -32,10 +37,10 @@ export default function UploadDataset() {
     <div style={cardStyle}>
       <h2 style={{ margin: '0 0 1.5rem 0' }}>Upload New Dataset</h2>
       <form onSubmit={handleUpload}>
-        <input type="text" placeholder="Dataset Name" value={uploadName} onChange={e => setUploadName(e.target.value)} style={inputStyle} autoComplete="off" data-bwignore="true" />
-        <input type="file" accept=".csv" onChange={e => setFile(e.target.files[0])} style={{ color: '#94a3b8', marginBottom: '1.5rem', display: 'block' }} />
-        <button type="submit" style={{ width: '100%', padding: '0.75rem', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-          Start Background Upload
+        <input type="text" disabled={uploading} placeholder="Dataset Name" value={uploadName} onChange={e => setUploadName(e.target.value)} style={inputStyle} autoComplete="off" data-bwignore="true" />
+        <input type="file" disabled={uploading} accept=".csv" onChange={e => setFile(e.target.files[0])} style={{ color: '#94a3b8', marginBottom: '1.5rem', display: 'block' }} />
+        <button type="submit" disabled={uploading} style={{ width: '100%', padding: '0.75rem', backgroundColor: uploading ? '#64748b' : '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: uploading ? 'not-allowed' : 'pointer', fontWeight: 'bold' }}>
+          {uploading ? 'Uploading…' : 'Upload Dataset'}
         </button>
       </form>
     </div>

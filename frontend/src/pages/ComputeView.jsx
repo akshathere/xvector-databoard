@@ -20,6 +20,7 @@ export default function ComputeView() {
   const [xAxisCol, setXAxisCol] = useState('');
   const [yAxisCol, setYAxisCol] = useState('');
   const [plotType, setPlotType] = useState('bar');
+  const [plotAgg, setPlotAgg] = useState('sum');
   const [plotData, setPlotData] = useState(null);
   const [isPlotLoading, setIsPlotLoading] = useState(false);
 
@@ -53,9 +54,15 @@ export default function ComputeView() {
     if (!xAxisCol || !yAxisCol) return toast.warning('Please select both X and Y columns.');
     setIsPlotLoading(true);
     try {
-      const res = await api.get(`/dataset/${id}/plot?col1=${xAxisCol}&col2=${yAxisCol}`);
+      const res = await api.get(`/dataset/${id}/plot`, { params: { col1: xAxisCol, col2: yAxisCol, agg: plotAgg } });
       setPlotData(res.data);
-      toast.success('Plot data loaded successfully!');
+      if (res.data.truncated) {
+        toast.info(plotAgg === 'none'
+          ? `Showing ${res.data.data.length} evenly sampled points of ${res.data.total}.`
+          : `Showing top ${res.data.data.length} of ${res.data.total} categories.`);
+      } else {
+        toast.success('Plot data loaded successfully!');
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to fetch plot data');
     } finally {
@@ -63,14 +70,24 @@ export default function ComputeView() {
     }
   };
 
+  // Bars summarise a category; scatter shows raw points
+  const handlePlotTypeChange = (type) => {
+    setPlotType(type);
+    setPlotAgg(type === 'scatter' ? 'none' : 'sum');
+  };
+
   // Dynamically generate the Apache ECharts config using the plotData from the backend
   const getChartOptions = () => {
     if (!plotData) return {};
     
-    const { col1, col2, data } = plotData;
+    const { col1, col2, agg, data } = plotData;
+    const numericX = data.every(r => typeof r.x === 'number');
+    // Text X values (e.g. industry names) can only go on a category axis
+    const categoryAxis = plotType === 'bar' || !numericX;
 
-    // 1. Sort the data numerically by the X-axis to prevent "spaghetti" line charts
-    const sortedData = [...data].sort((a, b) => Number(a[col1]) - Number(b[col1]));
+    // Server already orders aggregated data; only sort numeric X to prevent "spaghetti" line charts
+    const sortedData = numericX ? [...data].sort((a, b) => a.x - b.x) : data;
+    const yLabel = agg === 'none' ? col2 : agg === 'count' ? 'count' : `${agg}(${col2})`;
 
     return {
       tooltip: {
@@ -82,8 +99,9 @@ export default function ComputeView() {
       grid: { left: '5%', right: '5%', bottom: '10%', top: '10%', containLabel: true },
       xAxis: {
         // 2. Treat X-axis as continuous numbers for Line and Scatter plots
-        type: plotType === 'bar' ? 'category' : 'value',
-        data: plotType === 'bar' ? sortedData.map(r => r[col1]) : undefined,
+        type: categoryAxis ? 'category' : 'value',
+        data: categoryAxis ? sortedData.map(r => r.x) : undefined,
+        scale: !categoryAxis,
         name: col1,
         nameLocation: 'middle',
         nameGap: 30,
@@ -92,7 +110,7 @@ export default function ComputeView() {
       },
       yAxis: {
         type: 'value',
-        name: col2,
+        name: yLabel,
         axisLabel: { color: '#94a3b8' },
         splitLine: { lineStyle: { color: '#334155', type: 'dashed' } }
       },
@@ -100,9 +118,9 @@ export default function ComputeView() {
         {
           type: plotType,
           // 3. Map as strict [x, y] coordinate pairs for Line and Scatter
-          data: plotType === 'bar' 
-            ? sortedData.map(r => r[col2])
-            : sortedData.map(r => [r[col1], r[col2]]),
+          data: categoryAxis
+            ? sortedData.map(r => r.y)
+            : sortedData.map(r => [r.x, r.y]),
           itemStyle: { color: plotType === 'bar' ? '#38bdf8' : plotType === 'line' ? '#a855f7' : '#10b981' },
           symbolSize: plotType === 'scatter' ? 8 : 6,
           smooth: plotType === 'line'
@@ -193,10 +211,17 @@ export default function ComputeView() {
             {previewData.columns.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
 
-          <select value={plotType} onChange={e => setPlotType(e.target.value)} style={{ ...inputStyle, marginBottom: 0 }}>
+          <select value={plotType} onChange={e => handlePlotTypeChange(e.target.value)} style={{ ...inputStyle, marginBottom: 0 }}>
             <option value="bar">Bar Plot</option>
             <option value="line">Line Plot</option>
             <option value="scatter">Scatter Plot</option>
+          </select>
+
+          <select value={plotAgg} onChange={e => setPlotAgg(e.target.value)} style={{ ...inputStyle, marginBottom: 0 }}>
+            <option value="sum">Sum of Y per X</option>
+            <option value="mean">Average of Y per X</option>
+            <option value="count">Count of rows per X</option>
+            <option value="none">Raw points (sampled)</option>
           </select>
 
           <button onClick={handleFetchPlot} style={buttonStyle} disabled={isPlotLoading}>

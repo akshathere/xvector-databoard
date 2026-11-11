@@ -1,0 +1,6 @@
+test_case,array_size,mexwf_value,execution_time_ms
+1,10,4,12
+2,50,15,45
+3,100,42,103
+4,500,128,405
+5,1000,314,950

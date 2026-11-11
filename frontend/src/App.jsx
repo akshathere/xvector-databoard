@@ -3,7 +3,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import AuthScreen from './pages/AuthScreen';
-import Layout from './pages/Layout';
+import Layout from './pages/layout';
 import DatasetList from './pages/DatasetList';
 import UploadDataset from './pages/UploadDataset';
 import ComputeView from './pages/ComputeView';

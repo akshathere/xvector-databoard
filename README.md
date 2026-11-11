@@ -7,7 +7,7 @@ A full-stack web application for uploading, paginating, analyzing, and visualizi
 *   **Frontend:** React (Vite), React Router, Axios, React Toastify
 *   **Visualizations:** Apache ECharts (`echarts-for-react`)
 *   **Security:** Passwords hashed via `bcrypt`. JWT access tokens.
-*   **Performance:** O(1) computation cache, native background tasks for CSV file handling.
+*   **Performance:** O(1) in-memory caches for computations and plot data; synchronous CSV upload so the user is notified only once the file is saved.
 
 ## Setup Instructions
 

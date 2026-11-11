@@ -1,0 +1,5 @@
+- strong: "Dataset name:"
+- textbox "Dataset name:":
+  - /placeholder: e.g. Sales 2026
+- strong: "Upload CSV Dataset:"
+- button "Upload CSV Dataset:"
